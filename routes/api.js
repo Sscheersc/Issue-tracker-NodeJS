@@ -5,8 +5,8 @@ module.exports = function (app) {
   let issues = {};
 
   app.route('/api/issues/:project')
-  
-    .get(function (req, res){
+
+    .get(function (req, res) {
       let project = req.params.project;
       let filters = req.query;
 
@@ -18,8 +18,8 @@ module.exports = function (app) {
 
       res.json(filteredIssues);
     })
-    
-    .post(function (req, res){
+
+    .post(function (req, res) {
       let project = req.params.project;
       const { issue_title, issue_text, created_by, assigned_to = '', status_text = '' } = req.body;
 
@@ -51,8 +51,8 @@ module.exports = function (app) {
 
       res.json(newIssue);
     })
-    
-    .put(function (req, res){
+
+    .put(function (req, res) {
       let project = req.params.project;
       let { _id, issue_title, issue_text, created_by, assigned_to, status_text, open } = req.body;
 
@@ -78,8 +78,8 @@ module.exports = function (app) {
 
       res.json({ result: 'successfully updated', _id });
     })
-    
-    .delete(function (req, res){
+
+    .delete(function (req, res) {
       let project = req.params.project;
       let { _id } = req.body;
 
@@ -98,5 +98,5 @@ module.exports = function (app) {
 
       res.json({ result: 'successfully deleted', _id });
     });
-    
+
 };
