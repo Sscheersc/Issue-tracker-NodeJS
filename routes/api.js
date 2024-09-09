@@ -8,14 +8,13 @@ module.exports = function (app) {
   
     .get(function (req, res){
       let project = req.params.project;
-      const filter = req.query; // allows filtering by URL queries
-      const projectIssues = issues[project] || [];
-      let filteredIssues = projectIssues;
+      let filters = req.query;
 
-      // Apply filtering based on query parameters
-      for (let key in filter) {
-        filteredIssues = filteredIssues.filter(issue => issue[key] === filter[key]);
-      }
+      // Filter the issues based on the query parameters
+      let projectIssues = issues[project] || [];
+      let filteredIssues = projectIssues.filter(issue => {
+        return Object.keys(filters).every(key => issue[key] == filters[key]);
+      });
 
       res.json(filteredIssues);
     })
@@ -24,12 +23,16 @@ module.exports = function (app) {
       let project = req.params.project;
       const { issue_title, issue_text, created_by, assigned_to = '', status_text = '' } = req.body;
 
+      // Check for missing required fields
       if (!issue_title || !issue_text || !created_by) {
         return res.json({ error: 'required field(s) missing' });
       }
 
-      const newIssue = {
-        _id: uuidv4(),
+      // Generate a pseudo-unique ID using timestamp + random number
+      let issueId = Date.now().toString() + Math.floor(Math.random() * 1000).toString();
+
+      let newIssue = {
+        _id: issueId,
         issue_title,
         issue_text,
         created_by,
@@ -37,11 +40,13 @@ module.exports = function (app) {
         status_text,
         created_on: new Date(),
         updated_on: new Date(),
-        open: true
+        open: true,
       };
 
-      // Add the issue to the project in our in-memory store
-      issues[project] = issues[project] || [];
+      // Add issue to the project
+      if (!issues[project]) {
+        issues[project] = [];
+      }
       issues[project].push(newIssue);
 
       res.json(newIssue);
@@ -49,71 +54,48 @@ module.exports = function (app) {
     
     .put(function (req, res){
       let project = req.params.project;
-      const { _id, issue_title, issue_text, created_by, assigned_to, status_text, open } = req.body;
+      let { _id, issue_title, issue_text, created_by, assigned_to, status_text, open } = req.body;
 
       if (!_id) {
         return res.json({ error: 'missing _id' });
       }
 
-      const projectIssues = issues[project] || [];
-      const issueToUpdate = projectIssues.find(issue => issue._id === _id);
+      let projectIssues = issues[project] || [];
+      let issue = projectIssues.find(issue => issue._id === _id);
 
-      if (!issueToUpdate) {
+      if (!issue) {
         return res.json({ error: 'could not update', _id });
       }
 
-      let updated = false;
+      // Update fields if they are provided
+      issue.issue_title = issue_title || issue.issue_title;
+      issue.issue_text = issue_text || issue.issue_text;
+      issue.created_by = created_by || issue.created_by;
+      issue.assigned_to = assigned_to || issue.assigned_to;
+      issue.status_text = status_text || issue.status_text;
+      if (open !== undefined) issue.open = open === 'true';
+      issue.updated_on = new Date();
 
-      // Update the fields if they are provided
-      if (issue_title) {
-        issueToUpdate.issue_title = issue_title;
-        updated = true;
-      }
-      if (issue_text) {
-        issueToUpdate.issue_text = issue_text;
-        updated = true;
-      }
-      if (created_by) {
-        issueToUpdate.created_by = created_by;
-        updated = true;
-      }
-      if (assigned_to) {
-        issueToUpdate.assigned_to = assigned_to;
-        updated = true;
-      }
-      if (status_text) {
-        issueToUpdate.status_text = status_text;
-        updated = true;
-      }
-      if (open !== undefined) {
-        issueToUpdate.open = open;
-        updated = true;
-      }
-
-      if (!updated) {
-        return res.json({ error: 'no update field(s) sent', _id });
-      }
-
-      issueToUpdate.updated_on = new Date();
       res.json({ result: 'successfully updated', _id });
     })
     
     .delete(function (req, res){
       let project = req.params.project;
-      const { _id } = req.body;
+      let { _id } = req.body;
 
       if (!_id) {
         return res.json({ error: 'missing _id' });
       }
 
-      const projectIssues = issues[project] || [];
-      const index = projectIssues.findIndex(issue => issue._id === _id);
+      let projectIssues = issues[project] || [];
+      let index = projectIssues.findIndex(issue => issue._id === _id);
 
       if (index === -1) {
         return res.json({ error: 'could not delete', _id });
       }
 
       projectIssues.splice(index, 1);
+
       res.json({ result: 'successfully deleted', _id });
     });
     
