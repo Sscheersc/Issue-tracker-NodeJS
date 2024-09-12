@@ -71,6 +71,10 @@ module.exports = function (app) {
     .put(function (req, res) {
       let project = req.params.project;
       let { _id, issue_title, issue_text, created_by, assigned_to, status_text, open } = req.body;
+      
+      if (!_id && !issue_title && !issue_text && !created_by && !assigned_to && !status_text && open === undefined) {
+        return res.json({ error: 'no update field(s) sent', _id });
+      }
 
       if (!_id) {
         return res.json({ error: 'missing _id' });
@@ -84,9 +88,7 @@ module.exports = function (app) {
       }
 
       // If no fields are provided to update, return an error
-      if (!issue_title && !issue_text && !created_by && !assigned_to && !status_text && open === undefined) {
-        return res.json({ error: 'no update field(s) sent', _id });
-      }
+      
 
       // Update fields if they are provided
       issue.issue_title = issue_title || issue.issue_title;

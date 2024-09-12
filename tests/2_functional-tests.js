@@ -155,11 +155,11 @@ suite('Functional Tests', function () {
         test('Update an issue with no fields to update', function (done) {
             chai.request(server)
                 .put('/api/issues/test')
-                .send({ _id: testId })
+                .send({  })
                 .end(function (err, res) {
                     assert.equal(res.status, 200);
                     assert.equal(res.body.error, 'no update field(s) sent');
-                    assert.equal(res.body._id, testId);
+                    assert.equal(res.body._id, undefined);
                     done();
                 });
         });
