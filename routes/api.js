@@ -24,7 +24,7 @@ const Issue = mongoose.model('Issue', issueSchema);
 
 module.exports = function (app) {
 
-  app.route('/apitest/issues/:project')
+  app.route('/api/issues/:project')
 
     // GET route to view issues for a project
     .get(function (req, res) {

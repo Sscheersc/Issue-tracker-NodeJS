@@ -9,10 +9,10 @@ suite('Functional Tests', function() {
   
   let issueId;
 
-  suite('POST /apitest/issues/{project}', function() {
+  suite('POST /api/issues/{project}', function() {
     test('Create an issue with every field', function(done) {
       chai.request(server)
-        .post('/apitest/issues/testProject')
+        .post('/api/issues/testProject')
         .send({
           issue_title: 'Issue with every field',
           issue_text: 'Some issue text',
@@ -31,7 +31,7 @@ suite('Functional Tests', function() {
 
     test('Create an issue with only required fields', function(done) {
       chai.request(server)
-        .post('/apitest/issues/testProject')
+        .post('/api/issues/testProject')
         .send({
           issue_title: 'Issue with required fields',
           issue_text: 'Some issue text',
@@ -47,7 +47,7 @@ suite('Functional Tests', function() {
 
     test('Create an issue with missing required fields', function(done) {
       chai.request(server)
-        .post('/apitest/issues/testProject')
+        .post('/api/issues/testProject')
         .send({
           issue_title: 'Issue with missing fields'
         })
@@ -60,10 +60,10 @@ suite('Functional Tests', function() {
     });
   });
 
-  suite('PUT /apitest/issues/{project}', function() {
+  suite('PUT /api/issues/{project}', function() {
     test('Update one field on an issue', function(done) {
       chai.request(server)
-        .put('/apitest/issues/testProject')
+        .put('/api/issues/testProject')
         .send({
           _id: issueId,
           status_text: 'Resolved'
@@ -79,7 +79,7 @@ suite('Functional Tests', function() {
 
     test('Update multiple fields on an issue', function(done) {
       chai.request(server)
-        .put('/apitest/issues/testProject')
+        .put('/api/issues/testProject')
         .send({
           _id: issueId,
           issue_title: 'Updated title',
@@ -96,7 +96,7 @@ suite('Functional Tests', function() {
 
     test('Update an issue with missing _id', function(done) {
       chai.request(server)
-        .put('/apitest/issues/testProject')
+        .put('/api/issues/testProject')
         .send({
           issue_title: 'Update without _id'
         })
@@ -109,10 +109,10 @@ suite('Functional Tests', function() {
     });
   });
 
-  suite('DELETE /apitest/issues/{project}', function() {
+  suite('DELETE /api/issues/{project}', function() {
     test('Delete an issue', function(done) {
       chai.request(server)
-        .delete('/apitest/issues/testProject')
+        .delete('/api/issues/testProject')
         .send({ _id: issueId })
         .end(function(err, res) {
           assert.equal(res.status, 200);
@@ -125,7 +125,7 @@ suite('Functional Tests', function() {
 
     test('Delete an issue with missing _id', function(done) {
       chai.request(server)
-        .delete('/apitest/issues/testProject')
+        .delete('/api/issues/testProject')
         .send({})
         .end(function(err, res) {
           assert.equal(res.status, 200);
