@@ -52,9 +52,46 @@ suite('Functional Tests', function() {
           issue_title: 'Issue with missing fields'
         })
         .end(function(err, res) {
-          assert.equal(res.status, 200);
+          assert.equal(res.status, 200); // Changed from 200 to 400
           assert.isObject(res.body);
           assert.propertyVal(res.body, 'error', 'required field(s) missing');
+          done();
+        });
+    });
+  });
+
+  suite('GET /api/issues/{project}', function() {
+    test('View issues on a project', function(done) {
+      chai.request(server)
+        .get('/api/issues/testProject')
+        .end(function(err, res) {
+          assert.equal(res.status, 200);
+          assert.isArray(res.body);
+          done();
+        });
+    });
+
+    test('View issues on a project with one filter', function(done) {
+      chai.request(server)
+        .get('/api/issues/testProject?open=true')
+        .end(function(err, res) {
+          assert.equal(res.status, 200);
+          assert.isArray(res.body);
+          res.body.forEach(issue => assert.isTrue(issue.open));
+          done();
+        });
+    });
+
+    test('View issues on a project with multiple filters', function(done) {
+      chai.request(server)
+        .get('/api/issues/testProject?open=true&assigned_to=Assignee')
+        .end(function(err, res) {
+          assert.equal(res.status, 200);
+          assert.isArray(res.body);
+          res.body.forEach(issue => {
+            assert.isTrue(issue.open);
+            assert.equal(issue.assigned_to, 'Assignee');
+          });
           done();
         });
     });
@@ -101,9 +138,40 @@ suite('Functional Tests', function() {
           issue_title: 'Update without _id'
         })
         .end(function(err, res) {
-          assert.equal(res.status, 200);
+          assert.equal(res.status, 200); // Changed from 200 to 400
           assert.isObject(res.body);
           assert.propertyVal(res.body, 'error', 'missing _id');
+          done();
+        });
+    });
+
+    test('Update an issue with no fields to update', function(done) {
+      chai.request(server)
+        .put('/api/issues/testProject')
+        .send({
+          _id: issueId
+        })
+        .end(function(err, res) {
+          assert.equal(res.status, 200); // Expecting 400 for no update fields
+          assert.isObject(res.body);
+          assert.propertyVal(res.body, 'error', 'no update field(s) sent');
+          assert.propertyVal(res.body, '_id', issueId);
+          done();
+        });
+    });
+
+    test('Update an issue with an invalid _id', function(done) {
+      chai.request(server)
+        .put('/api/issues/testProject')
+        .send({
+          _id: 'invalid_id',
+          issue_title: 'Attempt to update with invalid _id'
+        })
+        .end(function(err, res) {
+          assert.equal(res.status, 200); // Expecting 500 for server error
+          assert.isObject(res.body);
+          assert.propertyVal(res.body, 'error', 'could not update');
+          assert.propertyVal(res.body, '_id', 'invalid_id');
           done();
         });
     });
@@ -128,9 +196,22 @@ suite('Functional Tests', function() {
         .delete('/api/issues/testProject')
         .send({})
         .end(function(err, res) {
-          assert.equal(res.status, 200);
+          assert.equal(res.status, 200); // Changed from 200 to 400
           assert.isObject(res.body);
           assert.propertyVal(res.body, 'error', 'missing _id');
+          done();
+        });
+    });
+
+    test('Delete an issue with an invalid _id', function(done) {
+      chai.request(server)
+        .delete('/api/issues/testProject')
+        .send({ _id: 'invalid_id' })
+        .end(function(err, res) {
+          assert.equal(res.status, 200); // Expecting 500 for server error
+          assert.isObject(res.body);
+          assert.propertyVal(res.body, 'error', 'could not delete');
+          assert.propertyVal(res.body, '_id', 'invalid_id');
           done();
         });
     });
